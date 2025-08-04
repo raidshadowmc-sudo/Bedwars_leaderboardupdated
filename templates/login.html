@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Bedwars - Вход Администратора</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/minecraft.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="minecraft-bg"></div>
+    <div class="bedwars-overlay"></div>
+    
+    <div class="container">
+        <!-- Header -->
+        <header class="header-section">
+            <div class="title-container">
+                <i class="fas fa-shield-alt admin-icon"></i>
+                <h1 class="main-title">ADMIN</h1>
+                <h2 class="sub-title">ПАНЕЛЬ УПРАВЛЕНИЯ</h2>
+            </div>
+        </header>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">
+                            <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' }}"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Login Form -->
+        <div class="form-container">
+            <div class="minecraft-panel login-panel">
+                <h3 class="panel-title">
+                    <i class="fas fa-key"></i>
+                    ВХОД В СИСТЕМУ
+                </h3>
+                <form action="/login" method="POST" class="login-form">
+                    <div class="form-group">
+                        <input type="password" name="password" placeholder="Пароль администратора" class="minecraft-input" required>
+                        <i class="fas fa-lock input-icon"></i>
+                    </div>
+                    <button type="submit" class="minecraft-btn minecraft-btn-primary">
+                        <i class="fas fa-sign-in-alt"></i>
+                        ВОЙТИ
+                    </button>
+                </form>
+                
+                <div class="login-info">
+                    <p><i class="fas fa-info-circle"></i> Только администратор может добавлять и изменять данные игроков</p>
+                    <a href="/" class="minecraft-btn minecraft-btn-sort">
+                        <i class="fas fa-arrow-left"></i>
+                        ВЕРНУТЬСЯ К ТАБЛИЦЕ
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>
+                <i class="fas fa-gamepad"></i>
+                Minecraft Bedwars Leaderboard
+                <i class="fas fa-heart"></i>
+            </p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+</body>
+</html>

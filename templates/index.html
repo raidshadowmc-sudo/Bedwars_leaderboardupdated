@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Bedwars - Таблица лидеров</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/minecraft.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="minecraft-bg"></div>
+    <div class="bedwars-overlay"></div>
+    
+    <div class="container">
+        <!-- Header -->
+        <header class="header-section">
+            <div class="title-container">
+                <i class="fas fa-trophy trophy-icon"></i>
+                <h1 class="main-title">BEDWARS</h1>
+                <h2 class="sub-title">ТАБЛИЦА ЛИДЕРОВ</h2>
+            </div>
+        </header>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">
+                            <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' }}"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Admin Controls -->
+        {% if not is_admin %}
+            <div class="admin-notice">
+                <div class="minecraft-panel">
+                    <div class="notice-content">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Только администратор может добавлять игроков</span>
+                        <a href="/login" class="minecraft-btn minecraft-btn-small minecraft-btn-sort">
+                            <i class="fas fa-key"></i>
+                            ВОЙТИ КАК АДМИН
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="admin-header">
+                <div class="minecraft-panel">
+                    <div class="admin-status">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Режим администратора</span>
+                        <a href="/logout" class="minecraft-btn minecraft-btn-small minecraft-btn-danger">
+                            <i class="fas fa-sign-out-alt"></i>
+                            ВЫЙТИ
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Player Form -->
+            <div class="form-container">
+                <div class="minecraft-panel">
+                    <h3 class="panel-title">
+                        <i class="fas fa-user-plus"></i>
+                        ДОБАВИТЬ ИГРОКА
+                    </h3>
+                    <form action="/add" method="POST" class="player-form" id="addPlayerForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <input type="text" name="nickname" placeholder="Ник игрока" class="minecraft-input" required maxlength="20">
+                                <i class="fas fa-user input-icon"></i>
+                            </div>
+                            <div class="form-group">
+                                <input type="text" name="role" placeholder="Роль" class="minecraft-input" maxlength="50" value="Игрок">
+                                <i class="fas fa-crown input-icon"></i>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <input type="number" name="kills" placeholder="Киллы" class="minecraft-input" min="0" max="999999" value="0">
+                                <i class="fas fa-sword input-icon"></i>
+                            </div>
+                            <div class="form-group">
+                                <input type="number" name="final_kills" placeholder="Финальные киллы" class="minecraft-input" min="0" max="999999" value="0">
+                                <i class="fas fa-skull input-icon"></i>
+                            </div>
+                            <div class="form-group">
+                                <input type="number" name="deaths" placeholder="Смерти" class="minecraft-input" min="0" max="999999" value="0">
+                                <i class="fas fa-heart-broken input-icon"></i>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <input type="number" name="beds_broken" placeholder="Сломанные кровати" class="minecraft-input" min="0" max="999999" value="0">
+                                <i class="fas fa-bed input-icon"></i>
+                            </div>
+                            <div class="form-group">
+                                <input type="number" name="games_played" placeholder="Количество игр" class="minecraft-input" min="0" max="999999" value="0">
+                                <i class="fas fa-gamepad input-icon"></i>
+                            </div>
+                            <div class="form-group">
+                                <input type="number" name="wins" placeholder="Победы" class="minecraft-input" min="0" max="999999" value="0">
+                                <i class="fas fa-trophy input-icon"></i>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <input type="number" name="experience" placeholder="Опыт" class="minecraft-input" min="0" max="999999" value="0">
+                                <i class="fas fa-star input-icon"></i>
+                            </div>
+                            <div class="form-group">
+                                <input type="text" name="server_ip" placeholder="IP сервера" class="minecraft-input" maxlength="100">
+                                <i class="fas fa-server input-icon"></i>
+                            </div>
+                        </div>
+                        <button type="submit" class="minecraft-btn minecraft-btn-primary submit-btn">
+                            <i class="fas fa-plus"></i>
+                            ДОБАВИТЬ ИГРОКА
+                        </button>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Sorting Controls -->
+        <div class="sorting-container">
+            <div class="minecraft-panel">
+                <h3 class="panel-title">
+                    <i class="fas fa-sort"></i>
+                    СОРТИРОВКА
+                </h3>
+                <div class="sorting-buttons">
+                    <a href="/?sort=experience" class="minecraft-btn minecraft-btn-sort {{ 'active' if current_sort == 'experience' else '' }}">
+                        <i class="fas fa-star"></i>
+                        ОПЫТ
+                    </a>
+                    <a href="/?sort=kills" class="minecraft-btn minecraft-btn-sort {{ 'active' if current_sort == 'kills' else '' }}">
+                        <i class="fas fa-sword"></i>
+                        КИЛЛЫ
+                    </a>
+                    <a href="/?sort=final_kills" class="minecraft-btn minecraft-btn-sort {{ 'active' if current_sort == 'final_kills' else '' }}">
+                        <i class="fas fa-skull"></i>
+                        ФИН. КИЛЛЫ
+                    </a>
+                    <a href="/?sort=beds_broken" class="minecraft-btn minecraft-btn-sort {{ 'active' if current_sort == 'beds_broken' else '' }}">
+                        <i class="fas fa-bed"></i>
+                        КРОВАТИ
+                    </a>
+                    <a href="/?sort=kd_ratio" class="minecraft-btn minecraft-btn-sort {{ 'active' if current_sort == 'kd_ratio' else '' }}">
+                        <i class="fas fa-chart-line"></i>
+                        K/D
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="leaderboard-container">
+            <div class="minecraft-panel">
+                <div class="panel-header">
+                    <h3 class="panel-title">
+                        <i class="fas fa-crown"></i>
+                        РЕЙТИНГ ИГРОКОВ
+                    </h3>
+                    {% if players %}
+                        <form action="/clear" method="POST" style="display: inline;">
+                            <button type="submit" class="minecraft-btn minecraft-btn-danger minecraft-btn-small" 
+                                    onclick="return confirm('Вы уверены, что хотите очистить таблицу лидеров?')">
+                                <i class="fas fa-trash"></i>
+                                ОЧИСТИТЬ
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+
+                {% if players %}
+                    <div class="leaderboard-table-container">
+                        <table class="leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th class="rank-column">
+                                        <i class="fas fa-medal"></i>
+                                        МЕСТО
+                                    </th>
+                                    <th class="player-column">
+                                        <i class="fas fa-user"></i>
+                                        ИГРОК
+                                    </th>
+                                    <th class="level-column">
+                                        <i class="fas fa-star"></i>
+                                        LVL
+                                    </th>
+                                    <th class="kills-column">
+                                        ⚔️
+                                        КИЛЛЫ
+                                    </th>
+                                    <th class="final-kills-column">
+                                        <i class="fas fa-skull"></i>
+                                        ФИН.
+                                    </th>
+                                    <th class="deaths-column">
+                                        <i class="fas fa-heart-broken"></i>
+                                        СМЕРТИ
+                                    </th>
+                                    <th class="games-column">
+                                        <i class="fas fa-gamepad"></i>
+                                        ИГРЫ
+                                    </th>
+                                    <th class="wins-column">
+                                        <i class="fas fa-trophy"></i>
+                                        ПОБЕД
+                                    </th>
+                                    <th class="winrate-column">
+                                        <i class="fas fa-percent"></i>
+                                        WIN%
+                                    </th>
+                                    <th class="beds-column">
+                                        <i class="fas fa-bed"></i>
+                                        КРОВАТИ
+                                    </th>
+                                    <th class="exp-column">
+                                        <i class="fas fa-star"></i>
+                                        ОПЫТ
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for player in players %}
+                                    <tr class="player-row rank-{{ loop.index }}" data-rank="{{ loop.index }}">
+                                        <td class="rank-cell">
+                                            <div class="rank-display">
+                                                {% if loop.index == 1 %}
+                                                    <i class="fas fa-crown rank-icon gold"></i>
+                                                    <span class="rank-number gold">#1</span>
+                                                {% elif loop.index == 2 %}
+                                                    <i class="fas fa-medal rank-icon silver"></i>
+                                                    <span class="rank-number silver">#2</span>
+                                                {% elif loop.index == 3 %}
+                                                    <i class="fas fa-medal rank-icon bronze"></i>
+                                                    <span class="rank-number bronze">#3</span>
+                                                {% else %}
+                                                    <span class="rank-number">#{{ loop.index }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td class="player-cell">
+                                            <div class="player-info">
+                                                <div class="player-name">
+                                                    <i class="fas fa-user player-icon"></i>
+                                                    {{ player.nickname }}
+                                                </div>
+                                                <div class="player-role {% if player.role.upper() == 'LEGEND' %}rank-legend{% elif player.role.upper() == 'MAGMA' %}rank-magma{% elif player.role.upper() == 'EMERALD' %}rank-emerald{% elif player.role.upper() == 'DIAMOND' %}rank-diamond{% elif player.role.upper() == 'GOLD' %}rank-gold{% endif %}">
+                                                    {{ player.role }}
+                                                </div>
+                                                {% if player.server_ip %}
+                                                    <div class="server-info">
+                                                        <div class="server-badge">{{ player.server_ip }}</div>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td class="level-cell">
+                                            <div class="level-display">
+                                                <span class="level-number">{{ player.level }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="stat-cell">
+                                            <i class="fas fa-sword kill-icon"></i>
+                                            <span class="stat-number kills">{{ "{:,}".format(player.kills) }}</span>
+                                        </td>
+                                        <td class="stat-cell">
+                                            <i class="fas fa-skull final-kill-icon"></i>
+                                            <span class="stat-number final-kills">{{ "{:,}".format(player.final_kills) }}</span>
+                                        </td>
+                                        <td class="stat-cell">
+                                            <span class="stat-number deaths">{{ "{:,}".format(player.deaths) }}</span>
+                                        </td>
+                                        <td class="stat-cell">
+                                            <span class="stat-number games">{{ "{:,}".format(player.games_played) }}</span>
+                                        </td>
+                                        <td class="stat-cell">
+                                            <span class="stat-number wins">{{ "{:,}".format(player.wins) }}</span>
+                                        </td>
+                                        <td class="stat-cell">
+                                            <span class="stat-number winrate">{{ player.win_rate }}%</span>
+                                        </td>
+                                        <td class="stat-cell">
+                                            <i class="fas fa-bed bed-icon"></i>
+                                            <span class="stat-number beds">{{ "{:,}".format(player.beds_broken) }}</span>
+                                        </td>
+                                        <td class="exp-cell">
+                                            <div class="exp-display">
+                                                <span class="exp-number">{{ "{:,}".format(player.experience) }}</span>
+                                                <i class="fas fa-star exp-icon"></i>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-users empty-icon"></i>
+                        <h3>Таблица лидеров пуста</h3>
+                        <p>Добавьте первого игрока, чтобы начать соревнование!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>
+                <i class="fas fa-gamepad"></i>
+                Minecraft Bedwars Leaderboard
+                <i class="fas fa-heart"></i>
+            </p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+</body>
+</html>

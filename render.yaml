@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: bedwars-leaderboard
+    env: python
+    buildCommand: ./build.sh
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 4 main:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ADMIN_PASSWORD
+        value: bedwars_admin_2025
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bedwars-db
+          property: connectionString
+
+databases:
+  - name: bedwars-db
+    databaseName: bedwars_leaderboard
+    user: bedwars_user
